@@ -10,7 +10,7 @@ class MappingStream {
      * @param MappingStreamItem[] $items
      * @return string
      */
-    public function encode($items) {
+    public static function encode($items) {
         $result = '';
         foreach($items as $item) {
             $result.=$item->toString();
@@ -18,7 +18,11 @@ class MappingStream {
         return $result;
     }
 
-    public function decode($encodedString) {
+    /**
+     * @param $encodedString
+     * @return MappingStreamItem[]
+     */
+    public static function decode($encodedString) {
         $stringLength = strlen($encodedString);
         for($i=0; $i<$stringLength;) {
             if ($encodedString[$i] === ',') {

@@ -4,7 +4,7 @@ namespace mentatxx\SourceMapReader;
 
 class Base64Vlq {
     // Constants
-    private static $SHIFT = 5;
+    private static $VLQ_BASE_SHIFT = 5;
     private static $MASK = 0x1F; // == (1 << SHIFT) == 0b00011111
     private static $CONTINUATION_BIT = 0x20; // == (MASK - 1 ) == 0b00100000
     private static $BASE64_TO_INT = array();
@@ -57,7 +57,7 @@ class Base64Vlq {
 
         do {
             $digit = $vlq & self::$MASK;
-            $vlq = self::shiftRight($vlq, self::$SHIFT);
+            $vlq = self::shiftRight($vlq, self::$VLQ_BASE_SHIFT);
             if ($vlq > 0) {
                 $digit |= self::$CONTINUATION_BIT;
             }
@@ -79,7 +79,7 @@ class Base64Vlq {
 
         do {
             $digit = self::$BASE64_TO_INT[$encodedString[$position]];
-            $vlq |= ($digit & self::$MASK) << ($position*self::$SHIFT);
+            $vlq |= ($digit & self::$MASK) << ($position*self::$VLQ_BASE_SHIFT);
             $position++;
         } while ($digit & self::$CONTINUATION_BIT);
 
