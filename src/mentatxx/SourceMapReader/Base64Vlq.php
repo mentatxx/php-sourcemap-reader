@@ -52,6 +52,7 @@ class Base64Vlq {
     }
 
     public static function encode($aValue) {
+        self::getInstance();
         $result = "";
         $vlq = self::toVlqSigned($aValue);
 
@@ -75,6 +76,7 @@ class Base64Vlq {
      * @throws \Exception
      */
     public static function decode($encodedString, $position) {
+        self::getInstance();
         $vlq = 0;
 
         do {

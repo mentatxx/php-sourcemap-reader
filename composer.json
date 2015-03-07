@@ -27,5 +27,11 @@
 		"phpdocumentor/phpdocumentor": "2.*",
 		"phpunit/phpunit": "3.*",
 		"sebastian/phpcpd": "2.*"
-	}
+	},
+    "autoload": {
+		"psr-4": {
+			"mentatxx\\SourceMapReader\\": "src/mentatxx/SourceMapReader",
+			"tests\\": "tests/"
+		}
+  }
 }

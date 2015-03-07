@@ -11,7 +11,7 @@ module.exports = function (grunt) {
 	
 	grunt.initConfig({
 		pkg: grunt.file.readJSON('package.json'),
-    shell: {
+    	shell: {
 			installComposer: {
 				command: 'curl -sS https://getcomposer.org/installer | php',
 				options: {
@@ -37,14 +37,14 @@ module.exports = function (grunt) {
 			},
 			options: {
 				bin: 'vendor/bin/phpunit',
-				//bootstrap: 'tests/php/phpunit.php',
+			//	bootstrap: 'tests/bootstrap.php',
 				colors: true,
 				configuration: 'phpunit.xml'
 			}
 		},
 		phplint: {
 			options: {
-				phpCmd: '/usr/bin/php', // Or 'c:\EasyPHP-5.3.8.1\PHP.exe'
+				phpCmd: 'php.exe', //'/usr/bin/php', // Or 'c:\EasyPHP-5.3.8.1\PHP.exe'
 				phpArgs: {
 					'-l': null
 				},
