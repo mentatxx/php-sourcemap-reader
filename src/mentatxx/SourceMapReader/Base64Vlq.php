@@ -7,8 +7,8 @@ class Base64Vlq {
     private static $VLQ_BASE_SHIFT = 5;
     private static $MASK = 0x1F; // == (1 << SHIFT) == 0b00011111
     private static $CONTINUATION_BIT = 0x20; // == (MASK - 1 ) == 0b00100000
-    private static $BASE64_TO_INT = array();
-    private static $INT_TO_BASE64 = array();
+    private $BASE64_TO_INT = array();
+    private $INT_TO_BASE64 = array();
 
     private static $_instance = null;
 
@@ -22,36 +22,24 @@ class Base64Vlq {
     private function __construct()
     {
         foreach (str_split('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/') as $i => $char) {
-            self::$BASE64_TO_INT[$char] = $i;
-            self::$INT_TO_BASE64[$i] = $char;
+            $this->BASE64_TO_INT[$char] = $i;
+            $this->INT_TO_BASE64[$i] = $char;
         }
     }
 
     private static function toVlqSigned($value) {
-        if (PHP_INT_SIZE === 4) {
-            return 0xffffffff & ($value < 0 ? ((-$value) << 1) + 1 : ($value << 1) + 0);
-        } else if (PHP_INT_SIZE === 8) {
-            return 0xffffffffffffffff & ($value < 0 ? ((-$value) << 1) + 1 : ($value << 1) + 0);
-        } else {
-            throw new \Exception('Not 32-bit and not 64-bit environment');
-        }
+        return $value<0 ? ((-$value)<<1)+1 : ($value << 1);
     }
 
     private static function fromVlqSigned($value) {
-        if (PHP_INT_SIZE === 4) {
-            return $value & 1 ? self::shiftRight(~$value + 2, 1) | (-1 - 0x7fffffff) : self::shiftRight($value, 1);
-        } else if (PHP_INT_SIZE === 8) {
-            return $value & 1 ? self::shiftRight(~$value + 2, 1) | (-1 - 0x7fffffffffffffff) : self::shiftRight($value, 1);
-        } else {
-            throw new \Exception('Not 32-bit and not 64-bit environment');
-        }
+        return $value & 1 ? -self::shiftRight($value, 1) : self::shiftRight($value, 1);
     }
 
     private static function shiftRight($a, $b) {
         return ($a >= 0) ? ($a >> $b) : ($a >> $b) & (PHP_INT_MAX >> ($b-1));
     }
 
-    public static function encode($aValue) {
+    public function encode($aValue) {
         self::getInstance();
         $result = "";
         $vlq = self::toVlqSigned($aValue);
@@ -62,7 +50,7 @@ class Base64Vlq {
             if ($vlq > 0) {
                 $digit |= self::$CONTINUATION_BIT;
             }
-            $result .= self::$INT_TO_BASE64[$digit];
+            $result .= $this->INT_TO_BASE64[$digit];
         } while ($vlq > 0);
         return $result;
     }
@@ -75,17 +63,17 @@ class Base64Vlq {
      * @return array
      * @throws \Exception
      */
-    public static function decode($encodedString, $position) {
+    public function decode($encodedString, $position) {
         self::getInstance();
-        $vlq = 0;
-
+        $result = 0;
+        $i = 0;
         do {
-            $digit = self::$BASE64_TO_INT[$encodedString[$position]];
-            $vlq |= ($digit & self::$MASK) << ($position*self::$VLQ_BASE_SHIFT);
-            $position++;
+            $digit = $this->BASE64_TO_INT[$encodedString[$position+$i]];
+            $result |= ($digit & self::$MASK) << ($i*self::$VLQ_BASE_SHIFT);
+            $i++;
         } while ($digit & self::$CONTINUATION_BIT);
 
-        return array(self::fromVLQSigned($vlq), $position);
+        return array(self::fromVLQSigned($result), $position+$i);
     }
 
 

@@ -23,6 +23,7 @@ class MappingStream {
      * @return MappingStreamItem[]
      */
     public static function decode($encodedString) {
+        $base64Vlq = Base64Vlq::getInstance();
         $stringLength = strlen($encodedString);
         for($i=0; $i<$stringLength;) {
             if ($encodedString[$i] === ',') {
@@ -33,7 +34,7 @@ class MappingStream {
                 $i++;
                 yield new MappingStreamItem(MappingStreamItem::$TYPE_LINE, ';');
             } else {
-                list($value, $i) = Base64Vlq::decode($encodedString, $i);
+                list($value, $i) = $base64Vlq->decode($encodedString, $i);
                 yield new MappingStreamItem(MappingStreamItem::$TYPE_NUMBER, $value);
             }
         }
