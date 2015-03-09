@@ -3,6 +3,7 @@ namespace tests;
 
 use mentatxx\SourceMapReader\MappingStream;
 use mentatxx\SourceMapReader\MappingStreamItem;
+use Symfony\Component\Config\Definition\Exception\Exception;
 
 class MappingStreamTest extends \PHPUnit_Framework_TestCase
 {
@@ -64,6 +65,13 @@ class MappingStreamTest extends \PHPUnit_Framework_TestCase
             $this->assertEquals($expected[$itemNumber], $item);
             $itemNumber++;
         }
+    }
+
+    /**
+     * @expectedException \Exception
+     */
+    public function testInvalidParameters() {
+        (new MappingStreamItem(100500, ''))->toString();
     }
 
 }

@@ -1,53 +1,73 @@
 <?php
-/**
- * php-sourcemap-reader
- * @package SourceMapReader
- * @version 0.1.0
- * @link https://github.com/mentatxx/php-sourcemap-reader
- * @author mentatxx <https://github.com/mentatxx>
- * @license https://github.com/mentatxx/php-sourcemap-reader/blob/master/LICENSE
- * @copyright Copyright (c) 2014, mentatxx 
- */
-
 namespace mentatxx\SourceMapReader;
 
-//require(dirname(__FILE__) . '/../../vendor/autoload.php');
+use Symfony\Component\Config\Definition\Exception\Exception;
 
-/**
- * The SourceMapReader class
- * @author mentatxx <https://github.com/mentatxx>
- * @since 0.1.0
- */
 class SourceMapReader {
+    protected $sourceMap;
+    protected $reader;
 
-	/**
-	 * A sample parameter
-	 * @var int $myParam This is my parameter
-	 * @since 0.1.0
-	 */
-	public $myParam = 0;
+    public function __construct()
+    {
+        $this->reader = new SourceMapSequentialReaderStrategy();
+    }
 
-	/**
-	 * A sample function that adds the $n param to $myParam
-	 * @name increase
-	 * @param int $n The number to add to $myParam
-	 * @since 0.1.0
-	 * @return object the SourceMapReader object
-	 */
-	public function increase ( $n ) {
-		$this->myParam += $n;
-		return $this;
-	}
+    public function setSourceMap($sourceMap) {
+        if (is_array($sourceMap)) {
+            $this->sourceMap = $sourceMap;
+        } else {
+            $this->sourceMap = json_decode($sourceMap, true);
+            if ($this->sourceMap === null) {
+                throw new Exception("Invalid JSON in setSourceMap");
+            }
+        }
+        $this->reader->setSourceMap($this->sourceMap);
+    }
 
-	/**
-	 * A sample function that sets $myParam to 0
-	 * @name negate
-	 * @since 0.1.0
-	 * @return object the SourceMapReader object
-	 */
-	public function negate (){
-		$this->myParam = 0;
-		return $this;
-	}
+    public static function withFile($fileName) {
+        $content = file_get_contents($fileName);
+        $sourceMapReader =  new SourceMapReader();
+        $sourceMapReader->setSourceMap($content);
+        return $sourceMapReader;
+    }
+
+    public function sortSources(&$sources)
+    {
+        usort($sources, function($a, $b){
+            $linesCompare = $a[0]-$b[0];
+            if ($linesCompare === 0) {
+                return $a[1]-$b[1];
+            } else {
+                return $linesCompare;
+            }
+        });
+    }
+
+    public function getSources($sources)
+    {
+        $this->sortSources($sources);
+        $currentSource = 0;
+        $lastItem = MappingItem::withParameters(0,0,0,0,0);
+        foreach($this->reader->walk() as $mappingItem) {
+            if ($currentSource >= count($sources)) {
+                // all sources found
+                return;
+            }
+            // are there any matches?
+            while ($currentSource < count($sources)) {
+                if ( ($sources[$currentSource][0] <= $mappingItem->minifiedLine) &&
+                     ($sources[$currentSource][1] < $mappingItem->minifiedColumn) ) {
+                    yield $lastItem;
+                    $currentSource++;
+                } else {
+                    break;
+                }
+            }
+            $lastItem = $mappingItem;
+        }
+        while ($currentSource < count($sources)) {
+            yield $lastItem;
+            $currentSource++;
+        }
+    }
 }
-?>
