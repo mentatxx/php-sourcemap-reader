@@ -10,30 +10,6 @@ namespace mentatxx\SourceMapReader;
 
 
 class SourceMapSequentialReaderStrategy extends SourceMapReaderAbstractStrategy {
-    private $minifiedColumn;
-    private $originalLine;
-    private $originalFile;
-    private $originalColumn;
-    private $originalName;
-
-    private function convertSegmentToMappingItem($segment) {
-        $cnt = count($segment);
-        if ($cnt === 0) {
-            return null;
-        }
-        if ($cnt !== 4 && $cnt !== 5) {
-            throw new \Exception("SourceMap group should include 4 or 5 items");
-        }
-        $mappingItem = new MappingItem();
-        $this->minifiedColumn = $mappingItem->minifiedColumn = $segment[0] + $this->minifiedColumn;
-        $this->originalFile = $mappingItem->originalFile = $segment[1] + $this->originalFile;
-        $this->originalLine = $mappingItem->originalLine = $segment[2] + $this->originalLine;
-        $this->originalColumn = $mappingItem->originalColumn = $segment[3] + $this->originalColumn;
-        if (count($segment)>4) {
-            $this->originalName = $mappingItem->originalName = $segment[4] + $this->originalName;
-        }
-        return $mappingItem;
-    }
 
     /**
      *
@@ -43,6 +19,7 @@ class SourceMapSequentialReaderStrategy extends SourceMapReaderAbstractStrategy 
      */
     public function walk()
     {
+        $this->minifiedLine = 0;
         $this->minifiedColumn = 0;
         $this->originalLine = 0;
         $this->originalColumn = 0;
@@ -63,8 +40,8 @@ class SourceMapSequentialReaderStrategy extends SourceMapReaderAbstractStrategy 
                     yield $mappingItem;
                 }
                 $segment = array();
-                $this->originalColumn = 0;
-                $this->originalLine++;
+                $this->minifiedColumn = 0;
+                $this->minifiedLine++;
 
             } else if ($item->type === MappingStreamItem::$TYPE_NUMBER) {
                 $segment[]=$item->value;
