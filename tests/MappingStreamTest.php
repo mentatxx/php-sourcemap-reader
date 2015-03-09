@@ -41,4 +41,29 @@ class MappingStreamTest extends \PHPUnit_Framework_TestCase
         }
     }
 
+    public function testDecode() {
+        $stream = new MappingStream();
+        $sample = ';;;;EAEE,EAAE';
+        $expected = [
+            new MappingStreamItem(MappingStreamItem::$TYPE_LINE, ';'),
+            new MappingStreamItem(MappingStreamItem::$TYPE_LINE, ';'),
+            new MappingStreamItem(MappingStreamItem::$TYPE_LINE, ';'),
+            new MappingStreamItem(MappingStreamItem::$TYPE_LINE, ';'),
+            new MappingStreamItem(MappingStreamItem::$TYPE_NUMBER, 2),
+            new MappingStreamItem(MappingStreamItem::$TYPE_NUMBER, 0),
+            new MappingStreamItem(MappingStreamItem::$TYPE_NUMBER, 2),
+            new MappingStreamItem(MappingStreamItem::$TYPE_NUMBER, 2),
+            new MappingStreamItem(MappingStreamItem::$TYPE_GROUP, ','),
+            new MappingStreamItem(MappingStreamItem::$TYPE_NUMBER, 2),
+            new MappingStreamItem(MappingStreamItem::$TYPE_NUMBER, 0),
+            new MappingStreamItem(MappingStreamItem::$TYPE_NUMBER, 0),
+            new MappingStreamItem(MappingStreamItem::$TYPE_NUMBER, 2)
+        ];
+        $itemNumber = 0;
+        foreach ($stream->decode($sample) as $item) {
+            $this->assertEquals($expected[$itemNumber], $item);
+            $itemNumber++;
+        }
+    }
+
 }

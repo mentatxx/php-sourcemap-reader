@@ -23,20 +23,10 @@ class MappingStream {
      * @return MappingStreamItem[]
      */
     public static function decode($encodedString) {
-        $base64Vlq = Base64Vlq::getInstance();
         $stringLength = strlen($encodedString);
         for($i=0; $i<$stringLength;) {
-            if ($encodedString[$i] === ',') {
-                $i++;
-                yield new MappingStreamItem(MappingStreamItem::$TYPE_GROUP, ';');
-            } else
-            if ($encodedString[$i] === ';') {
-                $i++;
-                yield new MappingStreamItem(MappingStreamItem::$TYPE_LINE, ';');
-            } else {
-                list($value, $i) = $base64Vlq->decode($encodedString, $i);
-                yield new MappingStreamItem(MappingStreamItem::$TYPE_NUMBER, $value);
-            }
+            list($item, $i) = MappingStreamItem::fromString($encodedString, $i);
+            yield $item;
         }
     }
 }
