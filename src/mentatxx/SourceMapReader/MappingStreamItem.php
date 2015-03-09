@@ -28,7 +28,7 @@ class MappingStreamItem {
             return ';';
         } else
         if ($this->type === self::$TYPE_NUMBER) {
-            return $this->value;
+            return Base64Vlq::getInstance()->encode($this->value);
         } else {
             throw new \Exception('Unknown MappingStreamItem::Type in toString');
         }
@@ -38,16 +38,18 @@ class MappingStreamItem {
      * Convert string item to MappingStreamItem
      *
      * @param $string
-     * @return MappingStreamItem
+     * @param $position
+     * @return array<MappingStreamItem, integer>
      */
-    public static function fromString($string) {
-        if ($string == ',') {
-            return new MappingStreamItem(self::$TYPE_GROUP, $string);
+    public static function fromString($string, $position) {
+        if ($string[$position] == ',') {
+            return array(new MappingStreamItem(self::$TYPE_GROUP, ','), $position+1);
         } else
-        if ($string == ';') {
-            return new MappingStreamItem(self::$TYPE_LINE, $string);
+        if ($string[$position] == ';') {
+            return array(new MappingStreamItem(self::$TYPE_LINE, ';'), $position+1);
         } else {
-            return new MappingStreamItem(self::$TYPE_NUMBER, $string);
+            list($vlqSigned, $position) = Base64Vlq::getInstance()->decode($string, $position);
+            return array(new MappingStreamItem(self::$TYPE_NUMBER, $vlqSigned), $position);
         }
     }
 }
